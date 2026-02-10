@@ -18,10 +18,10 @@ namespace Play.Catalog.Service.Repositories
 
 
 
-        public ItemsRepository()
+        public ItemsRepository(IMongoDatabase database)
         {
-            var mongoClient = new MongoClient("mongodb://localhost:27017");
-            var database = mongoClient.GetDatabase("catalog");
+            // var mongoClient = new MongoClient("mongodb://localhost:27017"); 
+            // var database = mongoClient.GetDatabase("catalog");
             dbCollection = database.GetCollection<Item>(collectionName);
         }
 
