@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Play.Catalog.Service.Dtos;
@@ -33,5 +34,15 @@ namespace Play.Catalog.Service.Controllers
             var item = items.Where(item => item.Id == id).SingleOrDefault();
             return item;
         }
+
+        [HttpPost]
+        public ActionResult<ItemDto> Post(CreateItemDto createItemDto)
+        {
+            var item = new ItemDto(Guid.NewGuid(), createItemDto.Name, createItemDto.Description, createItemDto.Price, DateTimeOffset.UtcNow);
+            items.Add(item);
+            return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
+        }
+
+
     }
 }
