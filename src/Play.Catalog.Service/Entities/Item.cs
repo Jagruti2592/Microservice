@@ -4,7 +4,8 @@ using System;
 
 namespace Play.Catalog.Service.Entities
 {
-    public record Item
+
+    public record Item : IEntity
     {
         public Guid Id { get; init; }
         public string Name { get; init; }
