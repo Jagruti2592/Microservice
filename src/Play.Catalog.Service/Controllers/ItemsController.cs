@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication.Cookies;
+
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Server.IIS.Core;
-using Microsoft.AspNetCore.SignalR;
+
 using Play.Catalog.Service.Dtos;
 using Play.Catalog.Service.Entities;
 using Play.Catalog.Service.Extensions;
-using Play.Catalog.Service.Repositories;
+using Play.Common;
+using Play.Common.MongoDB;
 
 namespace Play.Catalog.Service.Controllers
 {
@@ -23,24 +23,43 @@ namespace Play.Catalog.Service.Controllers
         //     new ItemDto(Guid.NewGuid(),"Antidote", "Cures poison", 7, DateTimeOffset.UtcNow),
         //     new ItemDto(Guid.NewGuid(),"Bronze sword", "Deals a small amount of damage", 20, DateTimeOffset.UtcNow)
         //     };
-        private readonly IRepository<Item> itemsRepository ;
+        private readonly IRepository<Item> itemsRepository;
 
-        public ItemsController(IRepository<Item>     itemsRepository)
+        private static int requestCounter =0;
+
+        public ItemsController(IRepository<Item> itemsRepository)
         {
             this.itemsRepository = itemsRepository;
         }
 
         [HttpGet]
-        public async Task<IEnumerable<ItemDto>> Get()
+        public async Task<ActionResult<IEnumerable<ItemDto>>> GetAsync()
         {
+            requestCounter++;
+            Console.WriteLine($"Request{requestCounter}: Starting ....");
 
-            var items = (await itemsRepository.GetAllAsync()).Select(item => item.AsDto());
+            if(requestCounter <= 2)
+            {
+                Console.WriteLine($"Request {requestCounter}: Delaying...");
+                await Task.Delay(TimeSpan.FromSeconds(10));
+            }
+
+            if(requestCounter <= 4)
+            {
+                Console.WriteLine($"Request {requestCounter}: 500(Internal Server Error)...");
+                return StatusCode(500);
+            }
+
+            var items = (await itemsRepository.GetAllAsync())
+                                                .Select(item => item.AsDto());
             if (items == null)
             {
                 throw new Exception("Items not found");
             }
 
-            return items;
+            Console.WriteLine($"Request {requestCounter} : 200(OK).");
+
+            return Ok(items);
         }
 
         //   GET/Items/1
@@ -137,6 +156,7 @@ namespace Play.Catalog.Service.Controllers
             {
                 return NotFound();
             }
+            //await itemsRepository.DeleteAsync(item);
             return NoContent();
         }
 
